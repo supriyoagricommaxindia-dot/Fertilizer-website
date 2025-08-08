@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agricom Max India Pvt Ltd - Retailer Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .product-card { transition: transform 0.2s; }
+        .product-card:hover { transform: scale(1.05); }
+        .cart-item { border-bottom: 1px solid #e5e7eb; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Navigation Bar -->
+    <nav class="bg-green-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Agricom Max India Pvt Ltd</h1>
+            <div>
+                <a href="#products" class="px-4 hover:underline">Products</a>
+                <a href="#cart" class="px-4 hover:underline">Cart (<span id="cart-count">0</span>)</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Product Listing Page -->
+    <section id="products" class="container mx-auto py-8">
+        <h2 class="text-3xl font-bold mb-6 text-center">Product Listing</h2>
+        <div class="mb-6">
+            <input type="text" id="search-input" placeholder="Search products..." class="w-full p-2 border rounded">
+        </div>
+
+        <!-- Complex Products -->
+        <div class="mb-8">
+            <h3 class="text-2xl font-semibold mb-4">Complex</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="complex-products">
+                <!-- Products will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- MOP Products -->
+        <div class="mb-8">
+            <h3 class="text-2xl font-semibold mb-4">MOP</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="mop-products">
+                <!-- Products will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Page -->
+    <section id="cart" class="container mx-auto py-8 hidden">
+        <h2 class="text-3xl font-bold mb-6 text-center">Your Cart</h2>
+        <div id="cart-items" class="space-y-4">
+            <!-- Cart items will be populated by JavaScript -->
+        </div>
+        <div class="mt-6 flex justify-between items-center">
+            <p class="text-xl font-semibold">Total: ₹<span id="cart-total">0</span></p>
+            <button id="proceed-to-payment" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">Proceed to Payment</button>
+        </div>
+        <button id="back-to-products" class="mt-4 text-blue-600 hover:underline">Back to Products</button>
+    </section>
+
+    <!-- Payment Page -->
+    <section id="payment" class="container mx-auto py-8 hidden">
+        <h2 class="text-3xl font-bold mb-6 text-center">Payment Details</h2>
+        <div class="bg-white p-6 rounded shadow-md">
+            <h3 class="text-xl font-semibold mb-4">Bank Details for Payment</h3>
+            <p><strong>Bank Name:</strong> State Bank of India</p>
+            <p><strong>Account Name:</strong> Agricom Max India Pvt Ltd</p>
+            <p><strong>Account Number:</strong> 123456789012</p>
+            <p><strong>IFSC Code:</strong> SBIN0001234</p>
+            <p><strong>Branch:</strong> Main Branch, Hyderabad</p>
+            <p class="mt-4">Please make the payment to the above account and email the transaction details to <a href="mailto:payments@agricommax.in" class="text-blue-600 hover:underline">payments@agricommax.in</a>.</p>
+        </div>
+        <button id="back-to-cart" class="mt-4 text-blue-600 hover:underline">Back to Cart</button>
+    </section>
+
+    <script>
+        // Sample product data
+        const products = [
+            { id: 1, category: 'Complex', company: 'CIL', name: 'CIL Complex Fertilizer', price: 500, image: 'https://via.placeholder.com/150' },
+            { id: 2, category: 'Complex', company: 'PPL', name: 'PPL Complex Nutrient', price: 600, image: 'https://via.placeholder.com/150' },
+            { id: 3, category: 'Complex', company: 'IRC', name: 'IRC Complex Blend', price: 550, image: 'https://via.placeholder.com/150' },
+            { id: 4, category: 'Complex', company: 'Matix', name: 'Matix Complex Formula', price: 580, image: 'https://via.placeholder.com/150' },
+            { id: 5, category: 'MOP', company: 'PPL', name: 'PPL MOP Fertilizer', price: 400, image: 'https://via.placeholder.com/150' },
+            { id: 6, category: 'MOP', company: 'IPL', name: 'IPL MOP Nutrient', price: 450, image: 'https://via.placeholder.com/150' }
+        ];
+
+        let cart = [];
+
+        // Populate products
+        function displayProducts(searchTerm = '') {
+            const complexProducts = document.getElementById('complex-products');
+            const mopProducts = document.getElementById('mop-products');
+            complexProducts.innerHTML = '';
+            mopProducts.innerHTML = '';
+
+            const filteredProducts = products.filter(product =>
+                product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.company.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            filteredProducts.forEach(product => {
+                const productCard = `
+                    <div class="product-card bg-white p-4 rounded shadow-md">
+                        <img src="${product.image}" alt="${product.name}" class="w-full h-40 object-cover rounded mb-4">
+                        <h4 class="text-lg font-semibold">${product.name}</h4>
+                        <p class="text-gray-600">Company: ${product.company}</p>
+                        <p class="text-gray-600">Price: ₹${product.price}</p>
+                        <input type="number" id="qty-${product.id}" min="1" value="1" class="w-16 p-1 border rounded mt-2">
+                        <button onclick="addToCart(${product.id})" class="bg-green-600 text-white px-4 py-2 rounded mt-2 hover:bg-green-700">Add to Cart</button>
+                    </div>
+                `;
+                if (product.category === 'Complex') {
+                    complexProducts.innerHTML += productCard;
+                } else {
+                    mopProducts.innerHTML += productCard;
+                }
+            });
+        }
+
+        // Add to cart
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const quantity = parseInt(document.getElementById(`qty-${productId}`).value);
+            const cartItem = cart.find(item => item.product.id === productId);
+
+            if (cartItem) {
+                cartItem.quantity += quantity;
+            } else {
+                cart.push({ product, quantity });
+            }
+
+            updateCart();
+        }
+
+        // Update cart display
+        function updateCart() {
+            const cartItems = document.getElementById('cart-items');
+            const cartCount = document.getElementById('cart-count');
+            const cartTotal = document.getElementById('cart-total');
+            cartItems.innerHTML = '';
+
+            let total = 0;
+            cart.forEach((item, index) => {
+                const itemTotal = item.product.price * item.quantity;
+                total += itemTotal;
+                cartItems.innerHTML += `
+                    <div class="cart-item flex justify-between items-center p-4 bg-white rounded">
+                        <div>
+                            <h4 class="text-lg font-semibold">${item.product.name}</h4>
+                            <p class="text-gray-600">Company: ${item.product.company}</p>
+                            <p class="text-gray-600">Price: ₹${item.product.price} x ${item.quantity} = ₹${itemTotal}</p>
+                        </div>
+                        <button onclick="removeFromCart(${index})" class="text-red-600 hover:underline">Remove</button>
+                    </div>
+                `;
+            });
+
+            cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartTotal.textContent = total;
+        }
+
+        // Remove from cart
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+
+        // Navigation between pages
+        function showSection(sectionId) {
+            document.querySelectorAll('section').forEach(section => section.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        // Event listeners
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            displayProducts(e.target.value);
+        });
+
+        document.getElementById('proceed-to-payment').addEventListener('click', () => {
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            showSection('payment');
+        });
+
+        document.getElementById('back-to-products').addEventListener('click', () => {
+            showSection('products');
+        });
+
+        document.getElementById('back-to-cart').addEventListener('click', () => {
+            showSection('cart');
+        });
+
+        document.querySelector('a[href="#cart"]').addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection('cart');
+        });
+
+        document.querySelector('a[href="#products"]').addEventListener('click', (e) => {
+            e.preventDefault();
+            showSection('products');
+        });
+
+        // Initialize
+        displayProducts();
+    </script>
+</body>
+</html>
